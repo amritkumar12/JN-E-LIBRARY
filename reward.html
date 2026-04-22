@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rewards & Analytics | Digital Innovators</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;700&family=Azeret+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --bg: #f8fafc;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Arimo', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Small Back Button Style */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--white);
+            border: 1px solid #e2e8f0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.2s ease;
+            z-index: 1000;
+        }
+
+        .back-button:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .dashboard-container {
+            width: 100%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            padding: 20px;
+        }
+
+        .header {
+            grid-column: span 2;
+            padding: 20px 0;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-family: 'Azeret Mono', monospace;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #f1f5f9;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Reward Section */
+        .reward-hero {
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: var(--white);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .reward-balance {
+            font-size: 64px;
+            font-family: 'Azeret Mono', monospace;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .reward-conversion {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 50px;
+            display: inline-block;
+            margin: 20px auto;
+            font-size: 14px;
+        }
+
+        /* Analytics Section */
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+
+        /* Calculator Section */
+        .calc-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            font-family: 'Azeret Mono', monospace;
+            background: #f8fafc;
+        }
+
+        .result-box {
+            grid-column: span 2;
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .money-value {
+            color: #059669;
+            font-weight: 700;
+            font-size: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+            .header {
+                grid-column: span 1;
+                margin-top: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Small Circular Back Button -->
+    <a href="profile.html" class="back-button" onclick="window.history.back(); return false;" title="Go Back">
+        <i class="fa-solid fa-arrow-left"></i>
+    </a>
+
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fa-solid fa-graduation-cap" style="color: var(--primary);"></i> Student Learning Analytics</h1>
+            <p>Jawaharlal Nehru Smart Library</p>
+        </div>
+
+        <!-- Reward Balance Card -->
+        <div class="card reward-hero">
+            <span style="text-transform: uppercase; letter-spacing: 2px; font-size: 12px; opacity: 0.8;">Total Earned Points</span>
+            <div class="reward-balance" id="totalPoints">450</div>
+            <div class="reward-conversion">
+                <i class="fa-solid fa-coins"></i> 10 Points = ₹1.00 Credit
+            </div>
+            <p style="font-size: 14px; opacity: 0.9;">Equivalent to <span style="font-weight:700;">₹45.00</span> in Library Credits</p>
+        </div>
+
+        <!-- Weekly Graph Card -->
+        <div class="card">
+            <div class="card-title">
+                <i class="fa-solid fa-chart-line" style="color: var(--primary);"></i>
+                Weekly Study Hours
+            </div>
+            <div class="chart-container">
+                <canvas id="studyChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Earning Calculator Card -->
+        <div class="card">
+            <div class="card-title">
+                <i class="fa-solid fa-calculator" style="color: var(--primary);"></i>
+                Reward Estimator
+            </div>
+            <div class="calc-grid">
+                <div class="input-group">
+                    <label>Daily Study (Hours)</label>
+                    <input type="number" id="studyInput" value="4" oninput="calculateRewards()">
+                </div>
+                <div class="input-group">
+                    <label>Days in Library</label>
+                    <input type="number" id="daysInput" value="5" oninput="calculateRewards()">
+                </div>
+                <div class="result-box">
+                    <p style="font-size: 14px; margin-bottom: 5px;">Estimated Monthly Earnings</p>
+                    <div id="estPoints" style="font-weight: 700; font-size: 18px; color: var(--primary);">800 Points</div>
+                    <div class="money-value" id="estMoney">≈ ₹80.00</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rules & Branches -->
+        <div class="card">
+            <div class="card-title">
+                <i class="fa-solid fa-circle-info" style="color: var(--primary);"></i>
+                System Logic
+            </div>
+            <ul style="list-style: none; padding: 0;">
+                <li style="margin-bottom: 12px; font-size: 15px; display: flex; align-items: start; gap: 10px;">
+                    <i class="fa-solid fa-check-circle" style="color: #10b981; margin-top: 4px;"></i>
+                    <span><strong>10:1 Ratio:</strong> Every 10 points can be redeemed for 1 Rupee toward printing or fines.</span>
+                </li>
+                <li style="margin-bottom: 12px; font-size: 15px; display: flex; align-items: start; gap: 10px;">
+                    <i class="fa-solid fa-check-circle" style="color: #10b981; margin-top: 4px;"></i>
+                    <span><strong>Calculation:</strong> Points = (Study Hours × 10) + (Daily Check-in Bonus of 5 pts).</span>
+                </li>
+                <li style="font-size: 15px; display: flex; align-items: start; gap: 10px;">
+                    <i class="fa-solid fa-check-circle" style="color: #10b981; margin-top: 4px;"></i>
+                    <span><strong>Tracking:</strong> Verified via IoT seat sensors and biometric entry/exit.</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Study Chart
+        const ctx = document.getElementById('studyChart').getContext('2d');
+        const studyChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Hours Studied',
+                    data: [4.5, 6, 3.2, 8, 5.5, 2, 0],
+                    backgroundColor: '#818cf8',
+                    borderColor: '#4f46e5',
+                    borderWidth: 0,
+                    borderRadius: 8,
+                    hoverBackgroundColor: '#4f46e5'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { display: false },
+                        ticks: { font: { family: 'Azeret Mono' } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { family: 'Azeret Mono' } }
+                    }
+                }
+            }
+        });
+
+        // Reward Calculator Logic
+        function calculateRewards() {
+            const hours = document.getElementById('studyInput').value || 0;
+            const days = document.getElementById('daysInput').value || 0;
+            
+            const weeklyPoints = (hours * 10 * days) + (days * 5);
+            const monthlyPoints = weeklyPoints * 4;
+            const monthlyMoney = monthlyPoints / 10;
+
+            document.getElementById('estPoints').innerText = monthlyPoints + " Points";
+            document.getElementById('estMoney').innerText = "≈ ₹" + monthlyMoney.toFixed(2);
+        }
+
+        window.onload = calculateRewards;
+    </script>
+</body>
+</html>
