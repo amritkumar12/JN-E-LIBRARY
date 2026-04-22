@@ -313,13 +313,13 @@
         </div>
     </section>
 
-    <!-- AI Assistant -->
+   <!-- AI Assistant -->
     <div id="ai-widget" class="fixed bottom-8 right-8 z-[60] hide-on-focus transition-opacity duration-500">
-        <button onclick="toggleAI()" class="w-16 h-16 bg-gradient-main rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-all group">
+       <a href="chatbot.html"> <button onclick="toggleAI()" class="w-16 h-16 bg-gradient-main rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-all group">
             <i data-lucide="sparkles" class="text-white group-hover:rotate-12 transition-transform"></i>
-        </button>
+        </button> </a>
         
-        <div id="ai-panel" class="absolute bottom-20 right-0 w-80 md:w-[400px] glass rounded-[32px] overflow-hidden shadow-2xl scale-0 origin-bottom-right transition-all border border-white/10">
+       <!--- <div id="ai-panel" class="absolute bottom-20 right-0 w-80 md:w-[400px] glass rounded-[32px] overflow-hidden shadow-2xl scale-0 origin-bottom-right transition-all border border-white/10">
             <div class="p-6 bg-gradient-main flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center"><i data-lucide="bot" class="text-white w-5 h-5"></i></div>
@@ -340,9 +340,8 @@
                     <i data-lucide="send" class="w-4 h-4"></i>
                 </button>
             </div>
-        </div>
+        </div>-->
     </div>
-
     <!-- Student Dashboard (Sidebar) -->
     <div id="dashboard" class="fixed inset-0 z-[100] hidden">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-md" onclick="toggleDashboard()"></div>
