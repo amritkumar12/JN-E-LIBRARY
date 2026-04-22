@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Librarian Admin Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        input, select { background: #1e293b !important; border: 1px solid #334155 !important; color: white !important; }
+        .btn-primary { background: #3b82f6; transition: all 0.2s; }
+        .btn-primary:hover { background: #2563eb; transform: translateY(-1px); }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- LOGIN OVERLAY -->
+    <div id="login-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 px-4">
+        <div class="glass p-8 rounded-3xl w-full max-w-md shadow-2xl">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="shield-check" class="text-blue-400 w-8 h-8"></i>
+                </div>
+                <h1 class="text-2xl font-bold">Librarian Access</h1>
+                <p class="text-slate-400 text-sm mt-2">Sign in with official credentials</p>
+            </div>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Official Email</label>
+                    <input type="email" id="email" required placeholder="admin@official.library.edu" class="w-full px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Access Token</label>
+                    <input type="password" id="password" required placeholder="••••••••" class="w-full px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                </div>
+                <button type="submit" class="btn-primary w-full py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 mt-4">
+                    Authenticate
+                </button>
+              
+            </form>
+            <p id="login-error" class="text-red-400 text-xs text-center mt-4 hidden">Invalid official credentials. Please use the correct ID and Password.</p>
+             <a href="index.html">
+                   <button class="mt-6 text-xs text-slate-500 hover:text-white w-full text-center transition-colors">Cancel Authorization</button>
+                </a>
+        </div>
+       
+    </div>
+
+    <!-- MAIN DASHBOARD (HIDDEN UNTIL LOGIN) -->
+    <div id="dashboard" class="hidden min-h-screen flex flex-col md:flex-row">
+        
+        <!-- Sidebar -->
+        <aside class="w-full md:w-64 glass border-r border-slate-800 p-6 flex flex-col">
+            <div class="flex items-center gap-3 mb-10 px-2">
+                <div class="p-2 bg-blue-500 rounded-lg"><i data-lucide="book-open" class="w-5 h-5 text-white"></i></div>
+                <span class="font-bold text-lg tracking-tight">LibAdmin</span>
+            </div>
+            
+            <nav class="space-y-2 flex-1">
+                <button onclick="showTab('inventory')" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-slate-400 hover:bg-slate-800 bg-slate-800 text-white" data-tab="inventory">
+                    <i data-lucide="library" class="w-5 h-5"></i>
+                    <span class="font-medium">Inventory</span>
+                </button>
+                <button onclick="showTab('seats')" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-slate-400 hover:bg-slate-800" data-tab="seats">
+                    <i data-lucide="armchair" class="w-5 h-5"></i>
+                    <span class="font-medium">Seat Control</span>
+                </button>
+                <button onclick="showTab('users')" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-slate-400 hover:bg-slate-800" data-tab="users">
+                    <i data-lucide="users" class="w-5 h-5"></i>
+                    <span class="font-medium">Members</span>
+                </button>
+            </nav>
+
+            <button onclick="location.reload()" class="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-400/10 rounded-xl transition-all mt-auto">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+                <span class="font-medium">Sign Out</span>
+            </button>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 md:p-10 overflow-y-auto">
+            <header class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold" id="tab-title">Book Inventory</h2>
+                    <p class="text-slate-400 text-sm">Manage library assets and cataloging</p>
+                </div>
+                <div class="flex gap-3">
+                    <div class="glass px-4 py-2 rounded-xl flex items-center gap-2">
+                        <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                        <span class="text-xs font-bold text-slate-300">Server Sync: OK</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- INVENTORY TAB -->
+            <section id="inventory" class="tab-content active space-y-6">
+                <!-- Add Book Form -->
+                <div class="glass p-6 rounded-2xl">
+                    <h3 class="font-bold mb-4 flex items-center gap-2">
+                        <i data-lucide="plus-circle" class="w-4 h-4 text-blue-400"></i>
+                        Add New Resource
+                    </h3>
+                    <form id="add-book-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <input type="text" placeholder="Book Title" class="px-4 py-2 rounded-lg" required>
+                        <input type="text" placeholder="Author" class="px-4 py-2 rounded-lg" required>
+                        <select class="px-4 py-2 rounded-lg">
+                            <option>Science & Tech</option>
+                            <option>Literature</option>
+                            <option>Mathematics</option>
+                            <option>History</option>
+                        </select>
+                        <input type="text" placeholder="ISBN Number" class="px-4 py-2 rounded-lg">
+                        <input type="number" placeholder="Copies" class="px-4 py-2 rounded-lg" min="1">
+                        <button type="submit" class="btn-primary rounded-lg font-bold">Register Book</button>
+                    </form>
+                </div>
+
+                <!-- Books Table -->
+                <div class="glass rounded-2xl overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-800/50 text-slate-400 text-xs uppercase font-bold">
+                            <tr>
+                                <th class="px-6 py-4">Book Details</th>
+                                <th class="px-6 py-4">Category</th>
+                                <th class="px-6 py-4">Status</th>
+                                <th class="px-6 py-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="book-list" class="divide-y divide-slate-800"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SEAT CONTROL TAB -->
+            <section id="seats" class="tab-content space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="glass p-6 rounded-2xl border-l-4 border-blue-500">
+                        <p class="text-slate-400 text-xs font-bold uppercase mb-1">Total Seats</p>
+                        <h4 class="text-3xl font-bold">120</h4>
+                    </div>
+                    <div class="glass p-6 rounded-2xl border-l-4 border-emerald-500">
+                        <p class="text-slate-400 text-xs font-bold uppercase mb-1">Occupied</p>
+                        <h4 class="text-3xl font-bold">78</h4>
+                    </div>
+                    <div class="glass p-6 rounded-2xl border-l-4 border-amber-500">
+                        <p class="text-slate-400 text-xs font-bold uppercase mb-1">Maintenance</p>
+                        <h4 class="text-3xl font-bold" id="maintenance-count">2</h4>
+                    </div>
+                </div>
+
+                <div class="glass p-6 rounded-2xl">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-bold">Floor Management</h3>
+                        <button class="text-xs font-bold text-blue-400 hover:underline">Reset All Seats</button>
+                    </div>
+                    <div id="admin-seat-grid" class="grid grid-cols-6 sm:grid-cols-10 gap-3"></div>
+                </div>
+            </section>
+
+            <!-- USERS TAB -->
+            <section id="users" class="tab-content space-y-6">
+                <div class="glass p-6 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold">Member Directory</h3>
+                        <p class="text-slate-400 text-sm">2,402 registered students</p>
+                    </div>
+                    <button class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
+                        <i data-lucide="download" class="w-4 h-4"></i> Export Data
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="user-list"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 translate-y-20 opacity-0 transition-all duration-300 glass border-emerald-500/50 px-6 py-4 rounded-2xl flex items-center gap-3 z-[60]">
+        <div class="bg-emerald-500 rounded-full p-1"><i data-lucide="check" class="w-4 h-4 text-white"></i></div>
+        <span id="toast-msg" class="font-medium">Action successful</span>
+    </div>
+
+    <script>
+        // Set hardcoded credentials
+        const VALID_EMAIL = "admin@official.library.edu";
+        const VALID_PASS = "Library@2024";
+
+        lucide.createIcons();
+
+        // Login Logic with Hardcoded Check
+        document.getElementById('login-form').onsubmit = (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            
+            if (email === VALID_EMAIL && pass === VALID_PASS) {
+                document.getElementById('login-overlay').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                initDashboard();
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        };
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('bg-slate-800', 'text-white');
+                b.classList.add('text-slate-400');
+            });
+            
+            document.getElementById(tabId).classList.add('active');
+            const btn = document.querySelector(`[data-tab="${tabId}"]`);
+            btn.classList.add('bg-slate-800', 'text-white');
+            
+            const titles = { 'inventory': 'Book Inventory', 'seats': 'Seat Control', 'users': 'Member Directory' };
+            document.getElementById('tab-title').innerText = titles[tabId];
+        }
+
+        function initDashboard() {
+            renderBooks();
+            renderAdminSeats();
+            renderUsers();
+            lucide.createIcons();
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+
+        function renderBooks() {
+            const books = [
+                { id: 1, title: "The Pragmatic Programmer", author: "Andy Hunt", cat: "Tech", status: "In Stock" },
+                { id: 2, title: "Clean Code", author: "Robert Martin", cat: "Tech", status: "Borrowed" },
+                { id: 3, title: "Brief History of Time", author: "Stephen Hawking", cat: "Science", status: "In Stock" }
+            ];
+            const list = document.getElementById('book-list');
+            list.innerHTML = books.map(b => `
+                <tr class="hover:bg-slate-800/30 transition-colors">
+                    <td class="px-6 py-4">
+                        <div class="font-bold">${b.title}</div>
+                        <div class="text-xs text-slate-400">${b.author}</div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-300">${b.cat}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase ${b.status === 'In Stock' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}">
+                            ${b.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right space-x-2">
+                        <button class="p-2 hover:bg-slate-700 rounded-lg text-slate-400"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                        <button class="p-2 hover:bg-red-500/20 rounded-lg text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function renderAdminSeats() {
+            const grid = document.getElementById('admin-seat-grid');
+            grid.innerHTML = '';
+            for (let i = 1; i <= 60; i++) {
+                const isUnderMaintenance = i % 15 === 0;
+                const seat = document.createElement('button');
+                seat.className = `aspect-square rounded-lg text-[10px] font-bold border-2 transition-all flex items-center justify-center
+                    ${isUnderMaintenance ? 'border-amber-500 bg-amber-500/10 text-amber-500' : 'border-slate-700 text-slate-500 hover:border-blue-500'}`;
+                seat.innerText = i;
+                seat.onclick = () => {
+                    seat.classList.toggle('border-amber-500');
+                    seat.classList.toggle('bg-amber-500/10');
+                    seat.classList.toggle('text-amber-500');
+                    showToast(`Seat ${i} status updated.`);
+                };
+                grid.appendChild(seat);
+            }
+        }
+
+        function renderUsers() {
+            const users = [
+                { name: "John Doe", id: "ST-2024-001", active: true },
+                { name: "Jane Smith", id: "ST-2024-042", active: true },
+                { name: "Alex Rivera", id: "ST-2024-115", active: false }
+            ];
+            const list = document.getElementById('user-list');
+            list.innerHTML = users.map(u => `
+                <div class="glass p-4 rounded-xl flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-bold text-blue-400">
+                            ${u.name.charAt(0)}
+                        </div>
+                        <div>
+                            <div class="font-bold text-sm">${u.name}</div>
+                            <div class="text-[10px] text-slate-500">${u.id}</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full ${u.active ? 'bg-emerald-500' : 'bg-slate-600'}"></div>
+                        <span class="text-[10px] uppercase font-bold text-slate-500">${u.active ? 'Active' : 'Offline'}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('add-book-form').onsubmit = (e) => {
+            e.preventDefault();
+            showToast("Book added to catalog successfully!");
+            e.target.reset();
+        };
+
+    </script>
+</body>
+</html>
