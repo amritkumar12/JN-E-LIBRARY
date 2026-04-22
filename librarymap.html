@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Seat Map</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .seat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 12px;
+        }
+        .seat {
+            aspect-ratio: 1 / 1;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .seat.vacant {
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid #10b981;
+            color: #10b981;
+        }
+        .seat.vacant:hover {
+            background: #10b981;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        .seat.occupied {
+            background: rgba(239, 68, 68, 0.1);
+            border: 2px solid #ef4444;
+            color: #ef4444;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+    <!-- Top Navigation -->
+    <div class="max-w-6xl mx-auto mb-8 flex justify-between items-center">
+        <a href="index.html" class="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-all font-semibold group">
+            <i data-lucide="arrow-left" class="w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
+            Back to Home
+        </a>
+        <div class="flex gap-4">
+            <div class="flex items-center gap-2">
+                <div class="w-3 h-3 bg-emerald-500 rounded-full"></div>
+                <span class="text-xs font-bold text-slate-400">VACANT</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                <span class="text-xs font-bold text-slate-400">OCCUPIED</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto">
+        <header class="mb-10 text-center">
+            <h1 class="text-3xl font-bold mb-2">Library Floor Plan</h1>
+            <p class="text-slate-400">Floor 2: Quiet Study Zone</p>
+        </header>
+
+        <!-- Floor Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            
+            <!-- Stats Sidebar -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="glass-panel p-6 rounded-2xl">
+                    <h3 class="text-lg font-bold mb-4">Live Status</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-end">
+                            <span class="text-slate-400 text-sm">Total Capacity</span>
+                            <span class="text-xl font-bold">120</span>
+                        </div>
+                        <div class="flex justify-between items-end">
+                            <span class="text-slate-400 text-sm">Available</span>
+                            <span class="text-xl font-bold text-emerald-400" id="vacant-count">42</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                            <div class="bg-emerald-500 h-full" style="width: 35%"></div>
+                        </div>
+                        <p class="text-[10px] text-slate-500 text-center uppercase tracking-widest pt-2">Last updated: Just now</p>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-2xl border-blue-500/30">
+                    <h3 class="text-blue-400 font-bold mb-2">Need a plug?</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">Seats marked with <i data-lucide="zap" class="inline w-3 h-3"></i> icon have dedicated power outlets.</p>
+                </div>
+            </div>
+
+            <!-- Seat Grid Area -->
+            <div class="lg:col-span-3">
+                <div class="glass-panel p-8 rounded-3xl">
+                    <div class="flex justify-between items-center mb-8">
+                        <div class="px-4 py-1 bg-slate-800 rounded-full text-xs font-bold text-slate-400 uppercase tracking-widest">Window Side</div>
+                        <div class="h-px bg-slate-800 flex-1 mx-4"></div>
+                        <div class="px-4 py-1 bg-slate-800 rounded-full text-xs font-bold text-slate-400 uppercase tracking-widest">Entry</div>
+                    </div>
+
+                    <div id="seat-container" class="seat-grid">
+                        <!-- Seats will be generated by JS -->
+                    </div>
+
+                    <div class="mt-12 flex justify-center">
+                        <div class="px-10 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-slate-500 font-bold text-sm">
+                            Main Bookshelf Area
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const seatContainer = document.getElementById('seat-container');
+        const TOTAL_SEATS = 64;
+        let vacantCount = 0;
+
+        // Simulate random seat occupancy
+        function generateSeats() {
+            seatContainer.innerHTML = '';
+            vacantCount = 0;
+
+            for (let i = 1; i <= TOTAL_SEATS; i++) {
+                const isOccupied = Math.random() < 0.6; // 60% chance of being occupied
+                const hasPlug = Math.random() < 0.3; // 30% chance of having a plug
+                
+                const seat = document.createElement('button');
+                seat.className = `seat rounded-xl flex flex-col items-center justify-center text-xs font-bold ${isOccupied ? 'occupied' : 'vacant'}`;
+                
+                if (!isOccupied) vacantCount++;
+
+                seat.innerHTML = `
+                    <span>${i}</span>
+                    ${hasPlug ? '<i data-lucide="zap" class="w-3 h-3 mt-1"></i>' : ''}
+                `;
+
+                if (!isOccupied) {
+                    seat.onclick = () => {
+                        // Custom booking logic could go here
+                        const confirmBooking = confirm(`Would you like to reserve Seat #${i}?`);
+                        if (confirmBooking) {
+                            seat.classList.remove('vacant');
+                            seat.classList.add('occupied');
+                            seat.onclick = null;
+                            updateCounter(-1);
+                        }
+                    };
+                }
+
+                seatContainer.appendChild(seat);
+            }
+            
+            document.getElementById('vacant-count').innerText = vacantCount;
+            lucide.createIcons();
+        }
+
+        function updateCounter(change) {
+            vacantCount += change;
+            document.getElementById('vacant-count').innerText = vacantCount;
+        }
+
+        window.onload = generateSeats;
+        lucide.createIcons();
+    </script>
+</body>
+</html>

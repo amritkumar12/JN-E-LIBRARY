@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JN Library | Smart Digital Experience</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #050b18;
+            color: #e2e8f0;
+            overflow-x: hidden;
+            transition: background 0.5s ease;
+        }
+
+        /* Glassmorphism Core */
+        .glass {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(139, 92, 246, 0.5);
+            background: rgba(30, 41, 59, 0.6);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Unique Feature: Ambient Modes */
+        body.focus-mode { background: #020617; }
+        body.focus-mode .hide-on-focus { opacity: 0; pointer-events: none; }
+        
+        .text-gradient {
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .bg-gradient-main {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #050b18; }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 10px;
+        }
+
+        /* Admin Login Overlay */
+        #admin-overlay {
+            backdrop-filter: blur(20px);
+            background: rgba(5, 11, 24, 0.8);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .float-animation { animation: float 4s ease-in-out infinite; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Page Loader -->
+    <div id="page-loader" class="fixed inset-0 z-[9999] bg-[#050b18] flex items-center justify-center transition-opacity duration-700">
+        <div class="flex flex-col items-center">
+            <div class="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+            <p class="text-xs tracking-[0.3em] font-bold text-blue-500 uppercase">Synchronizing Assets</p>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-gradient-main rounded-lg shadow-lg">
+                    <i data-lucide="library" class="text-white w-6 h-6"></i>
+                </div>
+                <div class="hidden sm:block">
+                    <h1 class="font-bold text-lg leading-tight">JN Library</h1>
+                    <p class="text-[9px] uppercase tracking-tighter text-blue-400 font-semibold">DHSGSU Central University</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4 sm:gap-8">
+                <div class="hidden lg:flex items-center gap-8 text-xs font-medium uppercase tracking-widest">
+                    <a href="#hero" class="hover:text-blue-400 transition-colors">Home</a>
+                    <a href="#search" class="hover:text-blue-400 transition-colors">Book Suggestion</a>
+                    <a href="catlog.html" class="hover:text-blue-400 transition-colors">Explore Book</a>
+                    <a href="#seats" class="hover:text-blue-400 transition-colors"> Booking</a>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                   <a href="administration.html"> <button class="p-2 hover:bg-white/5 rounded-full text-slate-400 hover:text-white transition-all" title="Admin Login">
+                        <i data-lucide="shield-check" class="w-5 h-5"></i>
+                    </button></a>
+                    <button onclick="toggleDashboard()" class="flex items-center gap-2 px-5 py-2.5 bg-white/5 hover:bg-blue-600 rounded-full border border-white/10 transition-all group">
+                        <span class="text-xs font-bold uppercase tracking-wider">Portal</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Unique Feature: Ambience Controller -->
+    <div class="fixed left-6 bottom-6 z-50 flex flex-col gap-3 hide-on-focus transition-opacity duration-500">
+        <button onclick="toggleFocusMode()" id="focus-btn" class="w-12 h-12 glass rounded-full flex items-center justify-center hover:bg-blue-600 transition-all shadow-xl group" title="Deep Focus Mode">
+            <i data-lucide="moon" class="w-5 h-5 group-hover:fill-current"></i>
+        </button>
+        <button onclick="toggleAudio()" id="audio-btn" class="w-12 h-12 glass rounded-full flex items-center justify-center hover:bg-purple-600 transition-all shadow-xl group" title="Lo-Fi Ambience">
+            <i data-lucide="music" class="w-5 h-5"></i>
+        </button>
+    </div>
+
+    <!-- Hero Section -->
+    <section id="hero" class="relative min-h-screen pt-32 flex flex-col items-center justify-center text-center px-6 overflow-hidden">
+        <!-- Animated Background Orbs -->
+        <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[120px] animate-pulse"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/10 rounded-full blur-[120px] animate-pulse"></div>
+
+        <div class="relative z-10 max-w-5xl mx-auto">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold tracking-[0.2em] mb-8 text-blue-400">
+                NEXT-GEN ACADEMIC ECOSYSTEM
+            </div>
+            <h1 class="text-5xl md:text-8xl font-bold mb-8 leading-tight tracking-tight">
+                Empowering <span class="text-gradient">Minds</span><br>Through knowledge
+            </h1>
+            <p class="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-12 leading-relaxed font-light">
+                The Jawaharlal Nehru Library is more than a building. It's a digital-first intelligent knowledge hub powered by AI discovery.
+            </p>
+            
+            <div class="flex flex-wrap justify-center gap-6">
+               <a href="catlog.html"> <button class="px-10 py-5 bg-gradient-main rounded-2xl font-bold shadow-2xl shadow-blue-500/20 hover:scale-105 transition-all">
+                    Explore Digital Catalog
+                </button> </a>
+                
+            </div>
+        </div>
+
+        <!-- Floating Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-24 w-full max-w-5xl relative z-10">
+            <div class="glass p-6 rounded-3xl">
+                <p class="text-3xl font-bold text-gradient">2.4M+</p>
+                <p class="text-[10px] uppercase tracking-widest text-slate-500 mt-1">E-Resources</p>
+            </div>
+            <div class="glass p-6 rounded-3xl">
+                <p class="text-3xl font-bold text-gradient">500+</p>
+                <p class="text-[10px] uppercase tracking-widest text-slate-500 mt-1">Study Stations</p>
+            </div>
+            <div class="glass p-6 rounded-3xl">
+                <p class="text-3xl font-bold text-gradient">24/7</p>
+                <p class="text-[10px] uppercase tracking-widest text-slate-500 mt-1">Digital Access</p>
+            </div>
+            <div class="glass p-6 rounded-3xl">
+                <p class="text-3xl font-bold text-gradient">15k+</p>
+                <p class="text-[10px] uppercase tracking-widest text-slate-500 mt-1">Daily Visits</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Admin Login Modal -->
+    <div id="admin-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6">
+        <div id="admin-overlay" class="absolute inset-0" onclick="toggleAdmin()"></div>
+        <div class="relative w-full max-w-md glass p-10 rounded-[40px] shadow-2xl border border-white/10">
+            <div class="text-center mb-10">
+                <div class="w-16 h-16 bg-gradient-main rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl">
+                    <i data-lucide="lock" class="text-white"></i>
+                </div>
+                <h2 class="text-2xl font-bold">Librarian Access</h2>
+                <p class="text-slate-400 text-sm mt-2">Manage catalog, users and inventory</p>
+            </div>
+            
+            <form id="admin-form" onsubmit="handleAdminLogin(event)" class="space-y-6">
+                <div>
+                    <label class="text-[10px] uppercase tracking-widest font-bold text-slate-500 mb-2 block">Admin Email</label>
+                    <input type="email" required placeholder="admin@dhsgv.ac.in" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 focus:border-blue-500 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase tracking-widest font-bold text-slate-500 mb-2 block">Access Key</label>
+                    <input type="password" required placeholder="••••••••" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 focus:border-blue-500 outline-none transition-all">
+                </div>
+                <button type="submit" class="w-full py-4 bg-gradient-main rounded-2xl font-bold hover:shadow-blue-500/20 hover:shadow-lg transition-all">
+                    Authorize Session
+                </button>
+            </form>
+            <button onclick="toggleAdmin()" class="mt-6 text-xs text-slate-500 hover:text-white w-full text-center transition-colors">Cancel Authorization</button>
+        </div>
+    </div>
+
+    <!-- Live Catalog & Search -->
+    <section id="search" class="py-32 px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
+                <div>
+                    <h2 class="text-4xl font-bold mb-4">Book Suggestion</h2>
+                    <p class="text-slate-400">Our smart algorithm suggests books based on your reading pattern.</p>
+                </div>
+                <div class="relative w-full md:w-96 group">
+                    <input type="text" placeholder="Search by topic, author, or keyword..." class="w-full glass py-5 pl-14 pr-6 rounded-3xl outline-none focus:border-blue-500/50 transition-all">
+                    <i data-lucide="search" class="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors"></i>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Book Card -->
+                <div class="glass-card p-6 rounded-[32px] group">
+                    <div class="relative aspect-[3/4] rounded-2xl overflow-hidden mb-6">
+                        <img src="https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&q=80&w=400" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
+                            <button class="w-full py-3 bg-white text-black font-bold rounded-xl text-xs uppercase tracking-widest">Borrow Now</button>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Technology</span>
+                    <h3 class="font-bold text-lg mt-1 group-hover:text-blue-400 transition-colors">Digital Renaissance</h3>
+                    <p class="text-sm text-slate-500 mt-1">Dr. S. K. Sharma</p>
+                </div>
+
+                 <div class="glass-card p-6 rounded-[32px] group">
+                    <div class="relative aspect-[3/4] rounded-2xl overflow-hidden mb-6">
+                        <img src="https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&q=80&w=400" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
+                            <button class="w-full py-3 bg-white text-black font-bold rounded-xl text-xs uppercase tracking-widest">Borrow Now</button>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Technology</span>
+                    <h3 class="font-bold text-lg mt-1 group-hover:text-blue-400 transition-colors">Digital Renaissance</h3>
+                    <p class="text-sm text-slate-500 mt-1">Dr. S. K. Sharma</p>
+                </div>
+
+                 <div class="glass-card p-6 rounded-[32px] group">
+                    <div class="relative aspect-[3/4] rounded-2xl overflow-hidden mb-6">
+                        <img src="https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&q=80&w=400" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
+                            <button class="w-full py-3 bg-white text-black font-bold rounded-xl text-xs uppercase tracking-widest">Borrow Now</button>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Technology</span>
+                    <h3 class="font-bold text-lg mt-1 group-hover:text-blue-400 transition-colors">Digital Renaissance</h3>
+                    <p class="text-sm text-slate-500 mt-1">Dr. S. K. Sharma</p>
+                </div>
+
+                 <div class="glass-card p-6 rounded-[32px] group">
+                    <div class="relative aspect-[3/4] rounded-2xl overflow-hidden mb-6">
+                        <img src="https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&q=80&w=400" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
+                            <button class="w-full py-3 bg-white text-black font-bold rounded-xl text-xs uppercase tracking-widest">Borrow Now</button>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Technology</span>
+                    <h3 class="font-bold text-lg mt-1 group-hover:text-blue-400 transition-colors">Digital Renaissance</h3>
+                    <p class="text-sm text-slate-500 mt-1">Dr. S. K. Sharma</p>
+                </div>
+
+            </div>
+
+
+            
+        </div>
+        </section>
+
+    <!-- Interactive Seat Map -->
+    <section id="seats" class="py-32 bg-white/[0.02] border-y border-white/5">
+        <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-20 items-center">
+            <div>
+                <div class="inline-flex items-center gap-2 text-green-500 text-[10px] font-bold tracking-widest uppercase mb-6">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Live Occupancy
+                </div>
+                <h2 class="text-5xl font-bold mb-8">Study Bay <span class="text-gradient">Reservations</span></h2>
+                <p class="text-slate-400 text-lg leading-relaxed mb-10">
+                    Real-time heatmaps show you the quietest zones. Secure your study station for up to 4 hours with a single tap.
+                </p>
+                <div class="grid grid-cols-2 gap-6 mb-12">
+                    <div class="p-6 glass rounded-3xl border-l-4 border-green-500">
+                        <p class="text-2xl font-bold">120</p>
+                        <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">Open Seats</p>
+                    </div>
+                    <div class="p-6 glass rounded-3xl border-l-4 border-blue-500">
+                        <p class="text-2xl font-bold">Zone B</p>
+                        <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">Most Quiet</p>
+                    </div>
+                </div>
+               <a href="librarymap.html"> <button class="px-8 py-4 bg-white text-black font-bold rounded-2xl hover:bg-blue-400 transition-all flex items-center gap-3">
+                    <i data-lucide="map-pin" class="w-5 h-5"></i> Open Full Interactive Map
+                </button></a>
+            </div>
+
+            <div class="glass p-10 rounded-[50px] shadow-inner">
+                <div class="grid grid-cols-10 gap-3" id="seat-grid">
+                    <!-- JS Grid -->
+                </div>
+                <div class="mt-10 flex justify-between items-center text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">
+                    <span>West Wing</span>
+                    <span>Entrance Area</span>
+                    <span>East Wing</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Assistant -->
+    <div id="ai-widget" class="fixed bottom-8 right-8 z-[60] hide-on-focus transition-opacity duration-500">
+        <button onclick="toggleAI()" class="w-16 h-16 bg-gradient-main rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-all group">
+            <i data-lucide="sparkles" class="text-white group-hover:rotate-12 transition-transform"></i>
+        </button>
+        
+        <div id="ai-panel" class="absolute bottom-20 right-0 w-80 md:w-[400px] glass rounded-[32px] overflow-hidden shadow-2xl scale-0 origin-bottom-right transition-all border border-white/10">
+            <div class="p-6 bg-gradient-main flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center"><i data-lucide="bot" class="text-white w-5 h-5"></i></div>
+                    <div>
+                        <p class="text-sm font-bold">Library Concierge</p>
+                    </div>
+                </div>
+                <button onclick="toggleAI()" class="p-2 hover:bg-white/10 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div id="chat-history" class="h-96 overflow-y-auto p-6 space-y-4 text-sm font-light">
+                <div class="bg-white/5 p-4 rounded-2xl rounded-tl-none border border-white/5">
+                    How can I assist your research today? I can find books, check availability, or summarize library policies.
+                </div>
+            </div>
+            <div class="p-4 bg-black/20 flex gap-2">
+                <input type="text" id="ai-input" placeholder="Type your query..." class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none text-xs focus:border-blue-500 transition-all">
+                <button onclick="sendQuery()" class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-500 transition-all">
+                    <i data-lucide="send" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Dashboard (Sidebar) -->
+    <div id="dashboard" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-md" onclick="toggleDashboard()"></div>
+        <div class="absolute right-0 top-0 bottom-0 w-full max-w-md bg-[#050b18] border-l border-white/5 p-8 shadow-2xl overflow-y-auto">
+            <div class="flex items-center justify-between mb-12">
+                <h3 class="text-2xl font-bold">My Library</h3>
+                <button onclick="toggleDashboard()" class="p-2 hover:bg-white/5 rounded-full transition-colors"><i data-lucide="x"></i></button>
+            </div>
+
+            <div class="p-8 glass rounded-3xl mb-10 text-center relative overflow-hidden group">
+                <div class="absolute inset-0 bg-gradient-main opacity-0 group-hover:opacity-5 transition-opacity"></div>
+                <div class="w-20 h-20 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-500/50">
+                    <span class="text-2xl font-bold text-blue-400">AK</span>
+                </div>
+                <h4 class="text-lg font-bold">Amrit Kumar</h4>
+                <p class="text-xs text-slate-500 mt-1 uppercase tracking-widest">B.Tech CSE - Year 1</p>
+                <div class="flex gap-2 justify-center mt-6">
+                    <span class="px-3 py-1 bg-green-500/10 text-green-500 text-[10px] font-bold rounded-full border border-green-500/20">Active Member</span>
+                </div>
+            </div>
+
+            <div class="space-y-8">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Borrowed Materials</p>
+                    <div class="space-y-4">
+                        <div class="p-5 glass rounded-2xl border-l-4 border-orange-500 flex justify-between items-center">
+                            <div>
+                                <h5 class="text-sm font-bold">Quantum Mechanics</h5>
+                                <p class="text-[10px] text-slate-500 mt-1">Due in 2 days</p>
+                            </div>
+                            <button class="p-2 hover:bg-white/5 rounded-lg text-xs font-bold text-blue-400">Renew</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Quick Stats</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-6 glass rounded-2xl">
+                            <p class="text-2xl font-bold">14</p>
+                            <p class="text-[10px] text-slate-500 mt-1 uppercase">Books Read</p>
+                        </div>
+                        <div class="p-6 glass rounded-2xl">
+                            <p class="text-2xl font-bold">₹0</p>
+                            <p class="text-[10px] text-slate-500 mt-1 uppercase">Late Fines</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+      <a href="profile.html" ><button class="w-full mt-5 py-4 border border-white/5 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-blue-500/10 hover:text-blue-500 transition-all">Edit Profile</button></a>
+       <button class="w-full mt-5 py-4 border border-white/5 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all">Sign Out</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-32 px-6 border-t border-white/5">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid md:grid-cols-4 gap-12 mb-20">
+                <div class="md:col-span-2">
+                    <div class="flex items-center gap-3 mb-8">
+                        <div class="p-2 bg-gradient-main rounded-lg"><i data-lucide="graduation-cap" class="text-white w-5 h-5"></i></div>
+                        <h4 class="font-bold text-lg">DR Hari singh Gour Vishwavidyalaya</h4>
+                    </div>
+                    <p class="text-slate-500 max-w-sm text-sm leading-relaxed">
+                        A Central University established in 1946, pioneering excellence in education and digital literacy for over 75 years.
+                    </p>
+                </div>
+                <div>
+                    <h5 class="font-bold mb-6 text-sm uppercase tracking-widest">Resources</h5>
+                    <ul class="space-y-4 text-sm text-slate-500">
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">E-Journals</a></li>
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">Past Papers</a></li>
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">Thesis Archive</a></li>
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">NDL India</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="font-bold mb-6 text-sm uppercase tracking-widest">Connect</h5>
+                    <ul class="space-y-4 text-sm text-slate-500">
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">Contact Support</a></li>
+                        <li><a href="https://maps.app.goo.gl/seoH2AM3Kx6v3WxWA" class="hover:text-blue-400 transition-colors">Library Office Address</a></li>
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">Instagram</a></li>
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">LinkedIn</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+                <p class="text-[10px] text-slate-600 uppercase tracking-[0.3em]">© 2026 Jawaharlal Nehru Library System</p>
+                <div class="flex items-center gap-4">
+                    <span class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Architected by</span>
+                    <span class="text-gradient font-bold">Amrit Kumar</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Audio Element (Hidden) -->
+    <audio id="lofi-player" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-17.mp3"></audio>
+
+    <script>
+        // Init Icons
+        lucide.createIcons();
+
+        // Loader
+        window.addEventListener('load', () => {
+            document.getElementById('page-loader').style.opacity = '0';
+            setTimeout(() => document.getElementById('page-loader').style.display = 'none', 700);
+        });
+
+        // Seat Grid Logic
+        const grid = document.getElementById('seat-grid');
+        for(let i=0; i<100; i++) {
+            const isOccupied = Math.random() > 0.7;
+            const seat = document.createElement('div');
+            seat.className = `aspect-square rounded-[20%] transition-all duration-500 cursor-pointer ${isOccupied ? 'bg-white/10 opacity-30 cursor-not-allowed' : 'bg-blue-500/20 border border-blue-500/30 hover:bg-blue-500 hover:scale-125 hover:z-10 shadow-lg'}`;
+            if(!isOccupied) {
+                seat.onclick = () => {
+                    seat.classList.toggle('bg-blue-500');
+                    seat.classList.toggle('shadow-[0_0_20px_rgba(59,130,246,0.6)]');
+                };
+            }
+            grid.appendChild(seat);
+        }
+
+        // Toggles
+        function toggleDashboard() { document.getElementById('dashboard').classList.toggle('hidden'); }
+        function toggleAI() { document.getElementById('ai-panel').classList.toggle('scale-0'); }
+        function toggleAdmin() { document.getElementById('admin-modal').classList.toggle('hidden'); }
+
+        // Focus Mode logic
+        function toggleFocusMode() {
+            document.body.classList.toggle('focus-mode');
+            const btn = document.getElementById('focus-btn');
+            const icon = btn.querySelector('i');
+            if(document.body.classList.contains('focus-mode')) {
+                icon.setAttribute('data-lucide', 'sun');
+                btn.classList.add('bg-orange-500');
+            } else {
+                icon.setAttribute('data-lucide', 'moon');
+                btn.classList.remove('bg-orange-500');
+            }
+            lucide.createIcons();
+        }
+
+        // Audio Logic
+        function toggleAudio() {
+            const player = document.getElementById('lofi-player');
+            const btn = document.getElementById('audio-btn');
+            if(player.paused) {
+                player.play();
+                btn.classList.add('bg-purple-600', 'animate-pulse');
+            } else {
+                player.pause();
+                btn.classList.remove('bg-purple-600', 'animate-pulse');
+            }
+        }
+
+        // Admin Login Handle
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin mx-auto"></i>';
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                alert("Security Authorization Failed: Incorrect Access Key for DHSGV-ADMIN-NODE-01");
+                btn.innerHTML = "Authorize Session";
+                lucide.createIcons();
+            }, 1500);
+        }
+
+        // AI Query Handle
+        async function sendQuery() {
+            const input = document.getElementById('ai-input');
+            const history = document.getElementById('chat-history');
+            const text = input.value.trim();
+            if(!text) return;
+
+            const userDiv = document.createElement('div');
+            userDiv.className = "bg-blue-600/20 p-4 rounded-2xl rounded-tr-none border border-blue-500/20 ml-auto max-w-[85%] text-xs";
+            userDiv.innerText = text;
+            history.appendChild(userDiv);
+            input.value = "";
+            history.scrollTop = history.scrollHeight;
+
+            // Mock Gemini response (Structure ready for real API)
+            const apiKey = "";
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: `You are the AI of JN Library Sagar. Answer briefly: ${text}` }] }]
+                    })
+                });
+                const data = await response.json();
+                const aiMsg = data.candidates?.[0]?.content?.parts?.[0]?.text || "System under maintenance. Please try later.";
+                
+                const aiDiv = document.createElement('div');
+                aiDiv.className = "bg-white/5 p-4 rounded-2xl rounded-tl-none border border-white/5 max-w-[85%] text-xs font-light leading-relaxed";
+                aiDiv.innerText = aiMsg;
+                history.appendChild(aiDiv);
+                history.scrollTop = history.scrollHeight;
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Search Bar Interactions
+        document.querySelector('input[type="text"]').addEventListener('focus', function() {
+            this.parentElement.classList.add('scale-105');
+        });
+        document.querySelector('input[type="text"]').addEventListener('blur', function() {
+            this.parentElement.classList.remove('scale-105');
+        });
+    </script>
+</body>
+</html>
