@@ -3,314 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScholarBot AI - All-in-One Assistant</title>
+    <title>Academic Assistant | Gemini AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
         
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc;
-        }
-
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(226, 232, 240, 0.8);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            color: #f1f5f9;
+            margin: 0;
+            overflow: hidden;
         }
 
         .chat-container {
-            height: calc(100vh - 200px);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            margin: 0 auto;
+            border-left: 1px solid #1e293b;
+            border-right: 1px solid #1e293b;
+            background: #020617;
         }
 
-        .message-bubble {
-            max-width: 85%;
-            animation: fadeIn 0.3s ease-out;
+        .message-bot {
+            background: #1e293b;
+            border-radius: 1.25rem 1.25rem 1.25rem 0.25rem;
+            color: #e2e8f0;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
+        .message-user {
+            background: #3b82f6;
+            border-radius: 1.25rem 1.25rem 0.25rem 1.25rem;
+            color: white;
         }
 
-        .loader {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3b82f6;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
+        .typing-indicator span {
+            height: 6px;
             width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
+            display: inline-block;
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: bounce 1.3s infinite;
         }
+
+        .typing-indicator span:nth-child(2) { animation-delay: 0.15s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-4px); }
+        }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
-<body class="text-slate-900">
+<body>
+    <div id="root"></div>
 
-    <div class="max-w-5xl mx-auto px-4 py-6 h-screen flex flex-col">
-        <!-- Header -->
-        <header class="flex items-center justify-between mb-6">
-            <div class="flex items-center gap-4">
-                <!-- Back Button -->
-               <a href="index.html"> <button onclick="goBack()" class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-slate-200 text-slate-600 transition-all" title="Go Back">
-                    <i class="fas fa-arrow-left"></i>
-                </button></a>
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
 
-                <div class="flex items-center gap-3 border-l pl-4 border-slate-200">
-                    <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
-                        <i class="fas fa-graduation-cap text-xl"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-xl font-bold text-slate-800">ScholarBot</h1>
-                        <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Academic AI Assistant</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="flex gap-2">
-                <button onclick="clearChat()" class="p-2 text-slate-400 hover:text-red-500 transition-colors" title="Clear Chat">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-            </div>
-        </header>
+        const App = () => {
+            const [messages, setMessages] = useState([
+                { role: 'bot', text: "Hello students! I am ready to answer every question in your mind. Whether it's about science, history, coding, or just seeking advice, feel free to ask anything!" }
+            ]);
+            const [input, setInput] = useState("");
+            const [isTyping, setIsTyping] = useState(false);
+            const messagesEndRef = useRef(null);
 
-        <!-- Main Chat Area -->
-        <main class="flex-1 glass-panel rounded-3xl shadow-xl overflow-hidden flex flex-col mb-4">
-            <div id="chat-window" class="flex-1 overflow-y-auto p-4 space-y-6 chat-container">
-                <!-- Welcome Message / Home View -->
-                <div class="flex flex-col items-center justify-center h-full text-center p-8 space-y-4 text-slate-400" id="empty-state">
-                    <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-2">
-                        <i class="fas fa-robot text-3xl"></i>
-                    </div>
-                    <h2 class="text-xl font-semibold text-slate-700">How can I help you today?</h2>
-                    <p class="max-w-xs text-sm">Ask me to write an essay, solve a math problem, or generate an image for your project.</p>
-                    <div class="grid grid-cols-2 gap-2 mt-4">
-                        <button onclick="setPrompt('Explain Quantum Physics simply')" class="text-xs bg-white border border-slate-200 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors">"Explain Quantum..."</button>
-                        <button onclick="setPrompt('Generate a landscape of a futuristic library')" class="text-xs bg-white border border-slate-200 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors">"Generate Image..."</button>
-                    </div>
-                </div>
-                <!-- Chat messages will be appended here -->
-                <div id="message-list" class="space-y-6"></div>
-            </div>
+            const scrollToBottom = () => {
+                messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+            };
 
-            <!-- Loading Indicator -->
-            <div id="loading" class="hidden px-6 py-4 flex items-center gap-3 text-sm text-blue-600 font-medium bg-blue-50/50">
-                <div class="loader"></div>
-                <span>ScholarBot is thinking...</span>
-            </div>
+            useEffect(() => {
+                scrollToBottom();
+            }, [messages, isTyping]);
 
-            <!-- Input Area -->
-            <div class="p-4 border-t border-slate-100 bg-white/50">
-                <div class="relative flex items-end gap-2">
-                    <textarea 
-                        id="user-input" 
-                        rows="1" 
-                        placeholder="Message ScholarBot..." 
-                        class="w-full bg-white border border-slate-200 rounded-2xl py-3 px-4 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none max-h-40"
-                        oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"
-                    ></textarea>
-                    <button 
-                        id="send-btn" 
-                        onclick="handleSendMessage()"
-                        class="bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200 transition-all active:scale-95"
-                    >
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </div>
-                <p class="text-[10px] text-center text-slate-400 mt-2">
-                    ScholarBot can make mistakes. Verify important information.
-                </p>
-            </div>
-        </main>
-    </div>
+            const callGemini = async (userPrompt) => {
+                const apiKey = ""; // API Key provided by environment
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                
+                // Broad system instruction for an all-purpose assistant
+                const systemPrompt = `You are a brilliant and versatile Academic AI Assistant. 
+                Your goal is to help students with ANY question they have—academic, general knowledge, creative, or technical.
+                - Provide detailed, accurate, and encouraging answers.
+                - If the question is about library books, you can still mention categories like Engineering, Literature, History, BSC, and Self Help.
+                - Use clear formatting for lists or steps.
+                - Do not limit yourself to book suggestions; be a full educational resource.`;
 
-    <script>
-        const apiKey = ""; // Provided by environment
-        const chatWindow = document.getElementById('chat-window');
-        const messageList = document.getElementById('message-list');
-        const userInput = document.getElementById('user-input');
-        const loadingIndicator = document.getElementById('loading');
-        const emptyState = document.getElementById('empty-state');
+                const payload = {
+                    contents: [{ parts: [{ text: userPrompt }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] }
+                };
 
-        // Automatic focus on load
-        window.onload = () => userInput.focus();
+                const fetchWithRetry = async (retries = 5, delay = 1000) => {
+                    try {
+                        const response = await fetch(url, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(payload)
+                        });
 
-        /**
-         * Navigation: Go Back
-         * Returns the user to the "Home" state by clearing messages and showing the welcome screen.
-         */
-        function goBack() {
-            if (messageList.children.length > 0) {
-                // If there are messages, we clear them to go "back" to start
-                clearChat();
-            } else {
-                // Otherwise, perhaps a simple UI notification
-                console.log("Already at the home screen.");
-            }
-        }
+                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                        
+                        const data = await response.json();
+                        return data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    } catch (err) {
+                        if (retries > 0) {
+                            await new Promise(res => setTimeout(res, delay));
+                            return fetchWithRetry(retries - 1, delay * 2);
+                        }
+                        throw err;
+                    }
+                };
 
-        function setPrompt(text) {
-            userInput.value = text;
-            userInput.style.height = userInput.scrollHeight + 'px';
-            handleSendMessage();
-        }
+                return await fetchWithRetry();
+            };
 
-        function clearChat() {
-            messageList.innerHTML = '';
-            emptyState.classList.remove('hidden');
-            chatWindow.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+            const handleSend = async () => {
+                if (!input.trim() || isTyping) return;
 
-        async function handleSendMessage() {
-            const prompt = userInput.value.trim();
-            if (!prompt) return;
+                const userText = input.trim();
+                setMessages(prev => [...prev, { role: 'user', text: userText }]);
+                setInput("");
+                setIsTyping(true);
 
-            // Update UI
-            if (!emptyState.classList.contains('hidden')) {
-                emptyState.classList.add('hidden');
-            }
-            
-            appendMessage('user', prompt);
-            userInput.value = '';
-            userInput.style.height = 'auto';
-            loadingIndicator.classList.remove('hidden');
-            chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
-
-            try {
-                // Logic: Check for image intent
-                const isImageRequest = prompt.toLowerCase().includes('generate') || 
-                                       prompt.toLowerCase().includes('create a picture') || 
-                                       prompt.toLowerCase().includes('draw a') ||
-                                       prompt.toLowerCase().includes('image of');
-
-                if (isImageRequest) {
-                    await generateImage(prompt);
-                } else {
-                    await generateText(prompt);
-                }
-            } catch (error) {
-                appendMessage('bot', 'Sorry, I encountered an error. Please check your connection and try again.');
-                console.error(error);
-            } finally {
-                loadingIndicator.classList.add('hidden');
-                chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
-            }
-        }
-
-        async function generateText(prompt) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-            
-            const response = await fetchWithRetry(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }],
-                    systemInstruction: { parts: [{ text: "You are ScholarBot, a helpful academic assistant. Keep answers clear, professional, and well-formatted. Use bullet points for complex topics." }] }
-                })
-            });
-
-            const data = await response.json();
-            const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't generate a response.";
-            appendMessage('bot', text);
-        }
-
-        async function generateImage(prompt) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
-            
-            const response = await fetchWithRetry(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    instances: { prompt: prompt },
-                    parameters: { sampleCount: 1 }
-                })
-            });
-
-            const data = await response.json();
-            const b64 = data.predictions?.[0]?.bytesBase64Encoded;
-            
-            if (b64) {
-                const imgUrl = `data:image/png;base64,${b64}`;
-                appendMessage('bot', `Generated image for: "${prompt}"`, imgUrl);
-            } else {
-                appendMessage('bot', "I couldn't generate that image. It might have triggered safety filters or been too complex.");
-            }
-        }
-
-        async function fetchWithRetry(url, options, retries = 5) {
-            for (let i = 0; i < retries; i++) {
                 try {
-                    const res = await fetch(url, options);
-                    if (res.ok) return res;
-                    if (res.status !== 429 && res.status < 500) break;
-                } catch (e) {}
-                await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
-            }
-            throw new Error('Max retries reached');
-        }
+                    const botResponse = await callGemini(userText);
+                    setMessages(prev => [...prev, { role: 'bot', text: botResponse || "I couldn't generate an answer. Please try rephrasing." }]);
+                } catch (error) {
+                    setMessages(prev => [...prev, { role: 'bot', text: "Connection error. Please check your internet or try again later." }]);
+                } finally {
+                    setIsTyping(false);
+                }
+            };
 
-        function appendMessage(role, text, imageUrl = null) {
-            const wrapper = document.createElement('div');
-            wrapper.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
-            
-            let contentHtml = `
-                <div class="message-bubble px-4 py-3 rounded-2xl shadow-sm ${
-                    role === 'user' 
-                    ? 'bg-blue-600 text-white rounded-tr-none' 
-                    : 'bg-white text-slate-800 border border-slate-100 rounded-tl-none'
-                }">
-                    <div class="text-sm whitespace-pre-wrap">${formatText(text)}</div>
-            `;
+            const goBack = () => {
+                // In a real app, this might navigate routes. 
+                // Here we'll simulate a reset or just a UI feedback.
+                if (window.confirm("Do you want to reset the conversation?")) {
+                    setMessages([{ role: 'bot', text: "Hello students! I am ready to answer every question in your mind." }]);
+                }
+            };
 
-            if (imageUrl) {
-                contentHtml += `
-                    <div class="mt-3 overflow-hidden rounded-lg border border-slate-100 bg-slate-50">
-                        <img src="${imageUrl}" class="w-full h-auto object-cover min-h-[100px]" alt="AI Generated" 
-                             onerror="this.parentElement.innerHTML='<p class=\"p-4 text-xs text-red-400\">Image failed to load</p>'">
+            return (
+                <div className="chat-container">
+                    {/* Header */}
+                    <header className="p-4 border-b border-slate-800 bg-slate-900/80 backdrop-blur-sm flex items-center justify-between sticky top-0 z-10">
+                        <div className="flex items-center gap-4">
+                            <button 
+                                onClick={goBack}
+                                className="p-2 hover:bg-slate-700 rounded-lg transition-colors text-slate-400 hover:text-white"
+                                title="Back"
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                                </svg>
+                            </button>
+                            <div className="flex items-center gap-3 border-l border-slate-700 pl-4">
+                                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center font-bold text-xs">AI</div>
+                                <div>
+                                    <h1 className="font-semibold text-sm">Academic Assistant</h1>
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                                        <span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Active Now</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Messages Area */}
+                    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                        {messages.map((msg, i) => (
+                            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                <div className={`max-w-[85%] p-4 text-sm shadow-lg ${msg.role === 'user' ? 'message-user' : 'message-bot'}`}>
+                                    <div className="whitespace-pre-wrap">{msg.text}</div>
+                                </div>
+                            </div>
+                        ))}
+                        {isTyping && (
+                            <div className="flex justify-start">
+                                <div className="message-bot p-4 shadow-lg">
+                                    <div className="typing-indicator">
+                                        <span></span><span></span><span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        <div ref={messagesEndRef} />
                     </div>
-                `;
-            }
 
-            contentHtml += `</div>`;
-            wrapper.innerHTML = contentHtml;
-            messageList.appendChild(wrapper);
-            chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
-        }
+                    {/* Input Area */}
+                    <div className="p-6 bg-slate-900/50 border-t border-slate-800">
+                        <div className="relative group">
+                            <input 
+                                type="text" 
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                                placeholder="Ask me anything..."
+                                className="w-full bg-slate-800 border border-slate-700 rounded-2xl py-4 pl-6 pr-14 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-inner"
+                            />
+                            <button 
+                                onClick={handleSend}
+                                disabled={isTyping || !input.trim()}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed group-focus-within:scale-105"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="mt-3 flex justify-center gap-4">
+                            <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Smart Analysis</span>
+                            <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Academic Support</span>
+                            <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">24/7 Access</span>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
 
-        function formatText(text) {
-            // Simple markdown parsing
-            return text
-                .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-blue-800">$1</strong>')
-                .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                .replace(/`(.*?)`/g, '<code class="bg-slate-100 px-1.5 py-0.5 rounded text-pink-600 text-[0.9em]">$1</code>');
-        }
-
-        // Handle Enter key for sending
-        userInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage();
-            }
-        });
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
